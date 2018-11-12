@@ -1,0 +1,179 @@
+
+$button10_Click = {
+	$listBox1.Items.Remove()
+	$robotasks = Get-ScheduledTask -Taskpath "\RoboCop-Tasks\" | select TaskName
+	foreach ($task in $robotasks){
+		$listBox1.Items.Add($task)
+	}
+}
+
+$listBox1_SelectedIndexChanged = {
+
+}
+
+$dateTimePicker1_ValueChanged = {
+
+}
+
+$tabPage1_Click = {
+
+}
+
+$checkBox6_CheckedChanged = {
+
+}
+
+$checkBox8_CheckedChanged = {
+
+}
+
+$pictureBox1_Click = {
+
+}
+
+$button8_Click = {
+	 $Form1.Close()
+}
+
+$Form1_Load = {
+
+	#remove comment when creating porgramm. needed because it wont work without admin
+	#	scheduledtaskfoldercreate
+
+}
+
+$radioButton2_CheckedChanged = {
+	CheckStart
+}
+
+$radioButton1_CheckedChanged = {
+	CheckStart
+}
+
+$textBox2_TextChanged = {
+	CheckStart
+}
+
+$backup_start_Click = {
+
+	$arguments = backuptype 
+	$log = createlog
+
+	$ArgumentList = '"{0}" "{1}" {2} {3}' -f $textBox1.Text, $textBox2.Text, $arguments, $log 
+	Write-Host $ArgumentList
+	Start-Process -FilePath robocopy.exe -ArgumentList $ArgumentList -Verbose -PassThru -NoNewWindow;
+	
+}
+
+$checkBox2_CheckedChanged = {
+	if ($checkBox2.Checked -eq $true) {
+		$textBox3.Enabled = $true
+		$button4.Enabled = $true
+	} elseif ($checkBox2.Checked -eq $false) {
+		$textBox3.Enabled = $false
+		$button4.Enabled = $false
+		}
+}
+
+$checkBox1_CheckedChanged = {
+	if ($checkBox1.Checked -eq $true) {
+		$numericUpDown1.Enabled = $true
+	} elseif ($checkBox1.Checked -eq $false) {
+		$numericUpDown1.Enabled = $false
+		}
+}
+
+$button4_Click = {
+
+	[System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
+    
+    $OpenFileDialog = New-Object System.Windows.Forms.SaveFileDialog
+	$OpenFileDialog.filter = "Log (*.log)| *.log"
+    $OpenFileDialog.ShowDialog() | Out-Null
+	$textbox3.text = $OpenFileDialog.FileName
+	$textbox3.Refresh()
+}
+
+$button3_Click = {
+	[System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
+    
+    $OpenFileDialog = New-Object System.Windows.Forms.folderbrowserdialog
+    $OpenFileDialog.ShowDialog() | Out-Null
+	$textbox2.text = $OpenFileDialog.SelectedPath
+	$textbox2.Refresh()
+}
+
+$button2_Click = {
+	[System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
+    
+    $OpenFileDialog = New-Object System.Windows.Forms.folderbrowserdialog
+    $OpenFileDialog.ShowDialog() | Out-Null
+	$textbox1.text = $OpenFileDialog.SelectedPath
+	$textbox1.Refresh()
+}
+
+$textBox1_TextChanged = {
+	CheckStart
+}
+
+
+<#
+##########################
+---------Functions--------
+##########################
+#>
+
+function CheckStart {
+	
+	if ($textBox1.TextLength -ne 0 -and $textBox2.TextLength -ne 0 -and ($radioButton1.Checked -eq $true -or $radioButton2.Checked -eq $true -or $radioButton3.Checked -eq $true)){
+		$backup_start.Enabled = $true
+	} else {
+		$backup_start.Enabled = $false
+	}
+
+}
+
+function backuptype {
+	
+	if ($radioButton1.Checked -eq $true){
+		$arguments =  "/MIR"
+	} elseif ($radioButton2.Checked -eq $true) {
+		$arguments = "/E /ZB /XO /COPYALL"
+	}
+
+	return $arguments
+
+}
+
+function createlog {
+	$path = $textBox3.Text
+
+	if ($checkBox2.Checked -eq $true){
+		$arguments =  '/LOG:"'+$path+'"'
+	} 
+
+	return $arguments
+}
+
+function scheduledtaskfoldercreate {
+	
+	$scheduleObject = New-Object -ComObject schedule.service
+	$scheduleObject.connect()
+	$rootFolder = $scheduleObject.GetFolder("\")
+	$rootFolder.CreateFolder("RoboCop-Tasks")
+
+}
+
+######End of Function#######
+
+
+<#
+##########################
+---------GUI Load--------
+##########################
+#>
+. (Join-Path $PSScriptRoot 'Form1.designer.ps1')
+
+$Form1.ShowDialog()
+
+######End of GUI#######
